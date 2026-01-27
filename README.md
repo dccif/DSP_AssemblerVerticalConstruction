@@ -7,6 +7,10 @@ Originally released by FYJ95 [here](https://dsp.thunderstore.io/package/57a103a4
 
 ## 更新履歴
 
+### v1.1.7
+- 修复生产逻辑，修复增产剂效果不传递以及物品数量不正确的bug
+- 同步增产/加速模式（forceAccMode）到所有堆叠的装配器以及蓝图
+
 ### v1.1.6
 - 适配最新v0.10.34.28281
 - 垂直建造以及蓝图时增产剂可以同步
@@ -14,11 +18,15 @@ Originally released by FYJ95 [here](https://dsp.thunderstore.io/package/57a103a4
 
 ---
 
-## English Description
+## Description
 
 Allows assemblers, smelters, chemical plants, and other production buildings to be constructed vertically, similar to Matrix Labs.
 
 ### Update History
+
+#### v1.1.7
+- Fixed production logic, including proliferator info transfer and incorrect item count bugs
+- Synchronized Productivity/Acceleration mode (forceAccMode) for stacked assemblers and blueprints
 
 #### v1.1.6
 - Compatible with v0.10.34.28281
