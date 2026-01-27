@@ -217,41 +217,25 @@ namespace AssemblerVerticalConstruction
                     ref int incServed = ref _this.incServed[i];
 
                     // 如果 assemblerId 中有原材料库存，则将其发送给 nextAssembler，以满足 nextNeeds 的需求。
-                    int transfar = Math.Min(served, nextNeeds);
+                    int transfer = Math.Min(served, nextNeeds);
 
                     if (incServed <= 0)
                     {
                         incServed = 0;
                     }
 
-                    //var args = new object[] { _this.served[i], incServed, transfar };
-                    //int out_one_inc_level = Traverse.Create(nextAssembler).Method("split_inc_level", new System.Type[] { typeof(int).MakeByRefType(), typeof(int).MakeByRefType(), typeof(int) }).GetValue<int>(args);
-                    //_this.served[i] = (int)args[0];
-                    //incServed = (int)args[1];
-
-                    // 备注：实际上，正确做法应该是调用 nextAssembler.split_inc_level()
-                    // 但 split_inc_level() 本应声明为 static，却未被设为 static，而且还被设为 private
-                    // 导致从这里调用它不可避免地会产生额外开销
-                    // 因此，决定直接将 split_inc_level() 的实现代码复制过来使用
-                    int out_one_inc_level = split_inc_level(ref _this.served[i], ref incServed, transfar);
+                    // 使用 split_inc_level 从源装配器提取要传递的增产剂信息
+                    // 返回值是每个物品的增产剂等级
+                    int incLevel = split_inc_level(ref _this.served[i], ref incServed, transfer);
                     if (_this.served[i] == 0)
                     {
                         incServed = 0;
                     }
 
-                    nextAssembler.served[i] += transfar;
-                    // 保持 incServed / served 比例一致
-                    if (nextAssembler.served[i] > 0)
-                    {
-                        long newInc = (long)nextAssembler.incServed[i] * (nextAssembler.served[i] + transfar) / nextAssembler.served[i];
-                        nextAssembler.incServed[i] = (int)Math.Min(newInc, int.MaxValue);
-                    }
-                    else
-                    {
-                        // 初始状态，按来源比例
-                        nextAssembler.incServed[i] = (int)((long)incServed * transfar / Math.Max(1, _this.served[i] + transfar));
-                    }
-                    nextAssembler.served[i] += transfar;
+                    // 将物品和对应的增产剂信息传递给目标装配器
+                    nextAssembler.served[i] += transfer;
+                    // incServed = 物品数量 * 增产剂等级
+                    nextAssembler.incServed[i] += transfer * incLevel;
                 }
             }
 
@@ -271,14 +255,14 @@ namespace AssemblerVerticalConstruction
 
 
         // AssemblerComponent.split_inc_level() 为原版方法
-        private static int split_inc_level(ref int n, ref int m, int p)
+        private int split_inc_level(ref int n, ref int m, int p)
         {
-            int num = m / n;
-            int num2 = m - num * n;
+            int num1 = m / n;
+            int num2 = m - num1 * n;
             n -= p;
-            num2 -= n;
-            m -= ((num2 > 0) ? (num * p + num2) : (num * p));
-            return num;
+            int num3 = num2 - n;
+            m -= num3 > 0 ? num1 * p + num3 : num1 * p;
+            return num1;
         }
     }
 }
