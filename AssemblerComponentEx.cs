@@ -68,6 +68,8 @@ namespace AssemblerVerticalConstruction
                         if (_this.assemblerPool[assemblerId2].recipeId > 0)
                         {
                             _this.assemblerPool[assemblerId].SetRecipe(_this.assemblerPool[assemblerId2].recipeId, _this.factory.entitySignPool);
+                            // 同步 forceAccMode
+                            SyncForceAccModeFromSource(_this, assemblerId, assemblerId2);
                             return;
                         }
                     }
@@ -89,12 +91,27 @@ namespace AssemblerVerticalConstruction
                         if (_this.assemblerPool[assemblerId3].recipeId > 0)
                         {
                             _this.assemblerPool[assemblerId].SetRecipe(_this.assemblerPool[assemblerId3].recipeId, _this.factory.entitySignPool);
+                            // 同步 forceAccMode
+                            SyncForceAccModeFromSource(_this, assemblerId, assemblerId3);
                             return;
                         }
                     }
                 }
             }
             while (objId != 0);
+        }
+
+        // 从源装配器同步 forceAccMode 到目标装配器
+        private static void SyncForceAccModeFromSource(FactorySystem factorySystem, int targetAssemblerId, int sourceAssemblerId)
+        {
+            ref var targetAssembler = ref factorySystem.assemblerPool[targetAssemblerId];
+            ref var sourceAssembler = ref factorySystem.assemblerPool[sourceAssemblerId];
+
+            // 仅当配方支持增产时才同步
+            if (targetAssembler.recipeExecuteData != null && targetAssembler.recipeExecuteData.productive)
+            {
+                targetAssembler.forceAccMode = sourceAssembler.forceAccMode;
+            }
         }
 
         public void SetAssemblerInsertTarget(PlanetFactory __instance, int assemblerId, int nextEntityId)

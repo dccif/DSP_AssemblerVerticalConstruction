@@ -574,6 +574,82 @@ namespace AssemblerVerticalConstruction
             SyncAssemblerFunctions(__instance.factorySystem, __instance.player, __instance.assemblerId);
         }
 
+        [HarmonyPostfix, HarmonyPatch(typeof(UIAssemblerWindow), "OnIncSwitchClick")]
+        public static void OnIncSwitchClickPatch(UIAssemblerWindow __instance)
+        {
+            if (__instance.assemblerId == 0 || __instance.factory == null)
+            {
+                return;
+            }
+            AssemblerComponent assemblerComponent = __instance.factorySystem.assemblerPool[__instance.assemblerId];
+            if (assemblerComponent.id != __instance.assemblerId)
+            {
+                return;
+            }
+            // 同步 forceAccMode 到所有堆叠的装配器
+            SyncForceAccMode(__instance.factorySystem, __instance.assemblerId);
+        }
+
+        public static void SyncForceAccMode(FactorySystem factorySystem, int assemblerId)
+        {
+            var _this = factorySystem;
+            int entityId = _this.assemblerPool[assemblerId].entityId;
+            if (entityId == 0)
+            {
+                return;
+            }
+
+            bool forceAccMode = _this.assemblerPool[assemblerId].forceAccMode;
+
+            // 向下遍历同步
+            int num = entityId;
+            do
+            {
+                bool flag;
+                int num3;
+                int num4;
+                _this.factory.ReadObjectConn(num, PlanetFactory.kMultiLevelInputSlot, out flag, out num3, out num4);
+                num = num3;
+                if (num > 0)
+                {
+                    int assemblerId2 = _this.factory.entityPool[num].assemblerId;
+                    if (assemblerId2 > 0 && _this.assemblerPool[assemblerId2].id == assemblerId2)
+                    {
+                        RecipeExecuteData recipeExecuteData = _this.assemblerPool[assemblerId2].recipeExecuteData;
+                        if (recipeExecuteData != null && recipeExecuteData.productive)
+                        {
+                            _this.assemblerPool[assemblerId2].forceAccMode = forceAccMode;
+                        }
+                    }
+                }
+            }
+            while (num != 0);
+
+            // 向上遍历同步
+            num = entityId;
+            do
+            {
+                bool flag;
+                int num3;
+                int num4;
+                _this.factory.ReadObjectConn(num, PlanetFactory.kMultiLevelOutputSlot, out flag, out num3, out num4);
+                num = num3;
+                if (num > 0)
+                {
+                    int assemblerId3 = _this.factory.entityPool[num].assemblerId;
+                    if (assemblerId3 > 0 && _this.assemblerPool[assemblerId3].id == assemblerId3)
+                    {
+                        RecipeExecuteData recipeExecuteData = _this.assemblerPool[assemblerId3].recipeExecuteData;
+                        if (recipeExecuteData != null && recipeExecuteData.productive)
+                        {
+                            _this.assemblerPool[assemblerId3].forceAccMode = forceAccMode;
+                        }
+                    }
+                }
+            }
+            while (num != 0);
+        }
+
         [HarmonyPostfix, HarmonyPatch(typeof(BuildingParameters), "PasteToFactoryObject")]
         public static void PasteToFactoryObjectPatch(BuildingParameters __instance, int objectId, PlanetFactory factory)
         {
