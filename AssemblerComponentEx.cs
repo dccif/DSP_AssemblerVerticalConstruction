@@ -1,5 +1,4 @@
 using System;
-using HarmonyLib;
 
 namespace AssemblerVerticalConstruction
 {
@@ -68,17 +67,7 @@ namespace AssemblerVerticalConstruction
                     {
                         if (_this.assemblerPool[assemblerId2].recipeId > 0)
                         {
-                            var sourceAssembler = _this.assemblerPool[assemblerId2];
-                            _this.assemblerPool[assemblerId].SetRecipe(sourceAssembler.recipeId, _this.factory.entitySignPool);
-                            
-                            // 同步增产剂及加速模式设置
-                            bool sourceIncUsed = Traverse.Create(sourceAssembler).Field<bool>("incUsed").Value;
-                            bool sourceForceAcc = Traverse.Create(sourceAssembler).Field<bool>("forceAccMode").Value;
-
-                            object boxed = (object)_this.assemblerPool[assemblerId];
-                            Traverse.Create(boxed).Field("incUsed").SetValue(sourceIncUsed);
-                            Traverse.Create(boxed).Field("forceAccMode").SetValue(sourceForceAcc);
-                            _this.assemblerPool[assemblerId] = (AssemblerComponent)boxed;
+                            _this.assemblerPool[assemblerId].SetRecipe(_this.assemblerPool[assemblerId2].recipeId, _this.factory.entitySignPool);
                             return;
                         }
                     }
@@ -99,17 +88,7 @@ namespace AssemblerVerticalConstruction
                     {
                         if (_this.assemblerPool[assemblerId3].recipeId > 0)
                         {
-                            var sourceAssembler = _this.assemblerPool[assemblerId3];
-                            _this.assemblerPool[assemblerId].SetRecipe(sourceAssembler.recipeId, _this.factory.entitySignPool);
-                            
-                            // 同步增产剂及加速模式设置
-                            bool sourceIncUsed = Traverse.Create(sourceAssembler).Field<bool>("incUsed").Value;
-                            bool sourceForceAcc = Traverse.Create(sourceAssembler).Field<bool>("forceAccMode").Value;
-
-                            object boxed = (object)_this.assemblerPool[assemblerId];
-                            Traverse.Create(boxed).Field("incUsed").SetValue(sourceIncUsed);
-                            Traverse.Create(boxed).Field("forceAccMode").SetValue(sourceForceAcc);
-                            _this.assemblerPool[assemblerId] = (AssemblerComponent)boxed;
+                            _this.assemblerPool[assemblerId].SetRecipe(_this.assemblerPool[assemblerId3].recipeId, _this.factory.entitySignPool);
                             return;
                         }
                     }
@@ -209,19 +188,13 @@ namespace AssemblerVerticalConstruction
 
             // 装配器用于存储原料的缓冲区的基本上限
             // 源自 AssemblerComponent.UpdateNeeds() 的代码
-            int timeSpend = Traverse.Create(nextAssembler).Field<int>("time").Value;
-            if (timeSpend <= 0 || nextAssembler.served == null)
-            {
-                return;
-            }
-            int needsFactor = nextAssembler.speedOverride * 180 / timeSpend + 1;
+            int needsFactor = nextAssembler.speedOverride * 180 / nextAssembler.recipeExecuteData.timeSpend + 1;
 
             int servedLen = _this.served.Length;
-            int[] nextRequireCounts = Traverse.Create(nextAssembler).Field<int[]>("requireCounts").Value;
             for (int i = 0; i < servedLen; i++)
             {
                 int served = _this.served[i];
-                int nextNeeds = nextRequireCounts[i] * needsFactor - nextAssembler.served[i];
+                int nextNeeds = nextAssembler.recipeExecuteData.requireCounts[i] * needsFactor - nextAssembler.served[i];
                 if (nextNeeds > 0 && served > 0)
                 {
                     ref int incServed = ref _this.incServed[i];
@@ -249,6 +222,8 @@ namespace AssemblerVerticalConstruction
                         incServed = 0;
                     }
 
+                    nextAssembler.served[i] += transfar;
+                    // 保持 incServed / served 比例一致
                     if (nextAssembler.served[i] > 0)
                     {
                         long newInc = (long)nextAssembler.incServed[i] * (nextAssembler.served[i] + transfar) / nextAssembler.served[i];
@@ -263,15 +238,14 @@ namespace AssemblerVerticalConstruction
                 }
             }
 
-            int[] productCounts = Traverse.Create(_this).Field<int[]>("productCounts").Value;
-            var productCountsLen = productCounts.Length;
+            var productCountsLen = _this.recipeExecuteData.productCounts.Length;
             for (int l = 0; l < productCountsLen; l++)
             {
-                var maxCount = productCounts[l] * 9;
+                var maxCount = _this.recipeExecuteData.productCounts[l] * 9;
                 if (_this.produced[l] < maxCount && nextAssembler.produced[l] > 0)
                 {
                     // 按比例传送原料
-                    var count = Math.Min(productCounts[l]*2, nextAssembler.produced[l]);
+                    var count = Math.Min(_this.recipeExecuteData.productCounts[l] * 2, nextAssembler.produced[l]);
                     _this.produced[l] += count;
                     nextAssembler.produced[l] -= count;
                 }

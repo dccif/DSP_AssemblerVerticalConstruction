@@ -1,6 +1,6 @@
 {
     "name": "AssemblerVerticalConstruction",
-    "version_number": "1.1.6",
+    "version_number": "1.1.7",
     "website_url": "https://github.com/dccif/DSP_AssemblerVerticalConstruction",
     "description": "Allow Assembler Vertical Construction.",
     "dependencies": [

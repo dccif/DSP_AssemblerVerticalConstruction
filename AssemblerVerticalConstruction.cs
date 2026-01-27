@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using crecheng.DSPModSave;
@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace AssemblerVerticalConstruction
 {
-    [BepInPlugin("lltcggie.DSP.plugin.AssemblerVerticalConstruction", "AssemblerVerticalConstruction", "1.1.6")]
+    [BepInPlugin("lltcggie.DSP.plugin.AssemblerVerticalConstruction", "AssemblerVerticalConstruction", "1.1.7")]
     [BepInDependency(DSPModSavePlugin.MODGUID)]
     [ModSaveSettings(LoadOrder = LoadOrder.Postload)]
     public class AssemblerVerticalConstruction : BaseUnityPlugin, IModCanSave
@@ -472,96 +472,76 @@ namespace AssemblerVerticalConstruction
             }
         }
 
-        public static List<int> GetStackedAssemblerIds(FactorySystem factorySystem, int assemblerId)
-        {
-            var _this = factorySystem;
-            List<int> result = new List<int>();
-            int entityId = _this.assemblerPool[assemblerId].entityId;
-            if (entityId == 0) return result;
-
-            // 1. 找到最底层的实体
-            int rootEntityId = entityId;
-            int nextId = rootEntityId;
-            do
-            {
-                rootEntityId = nextId;
-                bool isOutput;
-                int otherObjId;
-                int otherSlot;
-                _this.factory.ReadObjectConn(rootEntityId, PlanetFactory.kMultiLevelInputSlot, out isOutput, out otherObjId, out otherSlot);
-                nextId = otherObjId;
-            } while (nextId > 0);
-
-            // 2. 从最底层向上遍历所有实体并记录装配器 ID
-            int currEntityId = rootEntityId;
-            while (currEntityId > 0)
-            {
-                int aid = _this.factory.entityPool[currEntityId].assemblerId;
-                if (aid > 0 && _this.assemblerPool[aid].id == aid)
-                {
-                    result.Add(aid);
-                }
-
-                bool isOutput;
-                int otherObjId;
-                int otherSlot;
-                _this.factory.ReadObjectConn(currEntityId, PlanetFactory.kMultiLevelOutputSlot, out isOutput, out otherObjId, out otherSlot);
-                currEntityId = otherObjId;
-            }
-
-            return result;
-        }
-
         public static void SyncAssemblerFunctions(FactorySystem factorySystem, Player player, int assemblerId)
         {
-            var ids = GetStackedAssemblerIds(factorySystem, assemblerId);
-            if (ids.Count <= 1) return;
-
-            var sourceAssembler = factorySystem.assemblerPool[assemblerId];
-            int sourceRecipeId = sourceAssembler.recipeId;
-            bool sourceForceAcc = Traverse.Create(sourceAssembler).Field<bool>("forceAccMode").Value;
-
-            foreach (int targetId in ids)
+            var _this = factorySystem;
+            int entityId = _this.assemblerPool[assemblerId].entityId;
+            if (entityId == 0)
             {
-                if (targetId == assemblerId) continue;
+                return;
+            }
 
-                var targetAssembler = factorySystem.assemblerPool[targetId];
-                if (sourceRecipeId > 0)
+            int num = entityId;
+            do
+            {
+                bool flag;
+                int num3;
+                int num4;
+                _this.factory.ReadObjectConn(num, PlanetFactory.kMultiLevelInputSlot, out flag, out num3, out num4);
+                num = num3;
+                if (num > 0)
                 {
-                    if (targetAssembler.recipeId != sourceRecipeId)
+                    int assemblerId2 = _this.factory.entityPool[num].assemblerId;
+                    if (assemblerId2 > 0 && _this.assemblerPool[assemblerId2].id == assemblerId2)
                     {
-                        factorySystem.TakeBackItems_Assembler(player, targetId);
-                        factorySystem.assemblerPool[targetId].SetRecipe(sourceRecipeId, factorySystem.factory.entitySignPool);
-                        
-                        object boxed = (object)factorySystem.assemblerPool[targetId];
-                        Traverse.Create(boxed).Field("forceAccMode").SetValue(sourceForceAcc);
-                        factorySystem.assemblerPool[targetId] = (AssemblerComponent)boxed;
+                        if (_this.assemblerPool[assemblerId].recipeId > 0)
+                        {
+                            if (_this.assemblerPool[assemblerId2].recipeId != _this.assemblerPool[assemblerId].recipeId)
+                            {
+                                _this.TakeBackItems_Assembler(player, assemblerId2);
+                                _this.assemblerPool[assemblerId2].SetRecipe(_this.assemblerPool[assemblerId].recipeId, _this.factory.entitySignPool);
+                            }
+                        }
+                        else if (_this.assemblerPool[assemblerId2].recipeId != 0)
+                        {
+                            _this.TakeBackItems_Assembler(player, assemblerId2);
+                            _this.assemblerPool[assemblerId2].SetRecipe(0, _this.factory.entitySignPool);
+                        }
                     }
                 }
-                else if (targetAssembler.recipeId != 0)
+            }
+            while (num != 0);
+
+            num = entityId;
+            do
+            {
+                bool flag;
+                int num3;
+                int num4;
+                _this.factory.ReadObjectConn(num, PlanetFactory.kMultiLevelOutputSlot, out flag, out num3, out num4);
+                num = num3;
+                if (num > 0)
                 {
-                    factorySystem.TakeBackItems_Assembler(player, targetId);
-                    factorySystem.assemblerPool[targetId].SetRecipe(0, factorySystem.factory.entitySignPool);
+                    int assemblerId3 = _this.factory.entityPool[num].assemblerId;
+                    if (assemblerId3 > 0 && _this.assemblerPool[assemblerId3].id == assemblerId3)
+                    {
+                        if (_this.assemblerPool[assemblerId].recipeId > 0)
+                        {
+                            if (_this.assemblerPool[assemblerId3].recipeId != _this.assemblerPool[assemblerId].recipeId)
+                            {
+                                _this.TakeBackItems_Assembler(_this.factory.gameData.mainPlayer, assemblerId3);
+                                _this.assemblerPool[assemblerId3].SetRecipe(_this.assemblerPool[assemblerId].recipeId, _this.factory.entitySignPool);
+                            }
+                        }
+                        else if (_this.assemblerPool[assemblerId3].recipeId != 0)
+                        {
+                            _this.TakeBackItems_Assembler(_this.factory.gameData.mainPlayer, assemblerId3);
+                            _this.assemblerPool[assemblerId3].SetRecipe(0, _this.factory.entitySignPool);
+                        }
+                    }
                 }
             }
-        }
-
-        public static void SyncAssemblerSettings(FactorySystem factorySystem, int assemblerId)
-        {
-            var ids = GetStackedAssemblerIds(factorySystem, assemblerId);
-            if (ids.Count <= 1) return;
-
-            var sourceAssembler = factorySystem.assemblerPool[assemblerId];
-            bool sourceForceAcc = Traverse.Create(sourceAssembler).Field<bool>("forceAccMode").Value;
-
-            foreach (int targetId in ids)
-            {
-                if (targetId == assemblerId) continue;
-
-                object boxed = (object)factorySystem.assemblerPool[targetId];
-                Traverse.Create(boxed).Field("forceAccMode").SetValue(sourceForceAcc);
-                factorySystem.assemblerPool[targetId] = (AssemblerComponent)boxed;
-            }
+            while (num != 0);
         }
 
         [HarmonyPostfix, HarmonyPatch(typeof(UIAssemblerWindow), "OnRecipeResetClick")]
@@ -592,21 +572,6 @@ namespace AssemblerVerticalConstruction
                 return;
             }
             SyncAssemblerFunctions(__instance.factorySystem, __instance.player, __instance.assemblerId);
-        }
-
-        [HarmonyPostfix, HarmonyPatch(typeof(UIAssemblerWindow), "OnIncSwitchClick")]
-        public static void OnIncSwitchClickPatch(UIAssemblerWindow __instance)
-        {
-            if (__instance.assemblerId == 0 || __instance.factory == null)
-            {
-                return;
-            }
-            AssemblerComponent assemblerComponent = __instance.factorySystem.assemblerPool[__instance.assemblerId];
-            if (assemblerComponent.id != __instance.assemblerId)
-            {
-                return;
-            }
-            SyncAssemblerSettings(__instance.factorySystem, __instance.assemblerId);
         }
 
         [HarmonyPostfix, HarmonyPatch(typeof(BuildingParameters), "PasteToFactoryObject")]
