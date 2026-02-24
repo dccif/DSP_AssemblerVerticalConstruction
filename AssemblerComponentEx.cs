@@ -202,10 +202,20 @@ namespace AssemblerVerticalConstruction
             }
 
             ref var nextAssembler = ref assemblerPool[assemblerNextId];
+            if (nextAssembler.served == null || nextAssembler.recipeExecuteData == null)
+            {
+                return;
+            }
 
             // 装配器用于存储原料的缓冲区的基本上限
             // 源自 AssemblerComponent.UpdateNeeds() 的代码
-            int needsFactor = nextAssembler.speedOverride * 180 / nextAssembler.recipeExecuteData.timeSpend + 1;
+            // 防御性检查：timeSpend 为 0 时跳过（可能由其他 mod 的 Transpiler 导致）
+            int timeSpend = nextAssembler.recipeExecuteData.timeSpend;
+            if (timeSpend <= 0)
+            {
+                return;
+            }
+            int needsFactor = nextAssembler.speedOverride * 180 / timeSpend + 1;
 
             int servedLen = _this.served.Length;
             for (int i = 0; i < servedLen; i++)
@@ -257,6 +267,10 @@ namespace AssemblerVerticalConstruction
         // AssemblerComponent.split_inc_level() 为原版方法
         private int split_inc_level(ref int n, ref int m, int p)
         {
+            if (n <= 0)
+            {
+                return 0;
+            }
             int num1 = m / n;
             int num2 = m - num1 * n;
             n -= p;

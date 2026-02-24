@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace AssemblerVerticalConstruction
 {
-    [BepInPlugin("lltcggie.DSP.plugin.AssemblerVerticalConstruction", "AssemblerVerticalConstruction", "1.1.7")]
+    [BepInPlugin("lltcggie.DSP.plugin.AssemblerVerticalConstruction", "AssemblerVerticalConstruction", "1.1.8")]
     [BepInDependency(DSPModSavePlugin.MODGUID)]
     [ModSaveSettings(LoadOrder = LoadOrder.Postload)]
     public class AssemblerVerticalConstruction : BaseUnityPlugin, IModCanSave
@@ -442,6 +442,10 @@ namespace AssemblerVerticalConstruction
 
             var factories = Traverse.Create(__instance).Field<PlanetFactory[]>("factories").Value;
             var factoryCount = Traverse.Create(__instance).Field<int>("factoryCount").Value;
+            if (factoryCount <= 0)
+            {
+                return;
+            }
 
             // 2. 遍历当前线程负责的所有工厂批次
             for (int batch = threadContext.batchBegin; batch <= threadContext.batchEnd; batch++)
