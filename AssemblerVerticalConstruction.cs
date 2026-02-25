@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace AssemblerVerticalConstruction
 {
-    [BepInPlugin("lltcggie.DSP.plugin.AssemblerVerticalConstruction", "AssemblerVerticalConstruction", "1.1.8")]
+    [BepInPlugin("lltcggie.DSP.plugin.AssemblerVerticalConstruction", "AssemblerVerticalConstruction", "1.1.9")]
     [BepInDependency(DSPModSavePlugin.MODGUID)]
     [ModSaveSettings(LoadOrder = LoadOrder.Postload)]
     public class AssemblerVerticalConstruction : BaseUnityPlugin, IModCanSave
@@ -168,8 +168,8 @@ namespace AssemblerVerticalConstruction
         // 熔炉
         readonly static ModelSetting SmelterSetting = new ModelSetting(
             false,
-            new List<int> { 2302, 2315, 2319 },
-            new List<bool> { false, false, false },
+            new List<int> { 2302, 2315, 2319, 6230 },
+            new List<bool> { false, false, false, false },
             new Vector3(0, 4.3f, 0),
             new int[7] { 2, 4, 6, 8, 10, 12, 14 }
             );
@@ -208,6 +208,7 @@ namespace AssemblerVerticalConstruction
             { 2302, SmelterSetting }, // 电弧熔炉
             { 2315, SmelterSetting }, // 位面熔炉
             { 2319, SmelterSetting }, // 负熵熔炉
+            { 6230, SmelterSetting }, // ProjectGenesis 熔炉
 
             { 2309, ChemicalPlantSetting }, // 化工厂
             { 2317, ChemicalPlantSetting }, // 量子化工厂

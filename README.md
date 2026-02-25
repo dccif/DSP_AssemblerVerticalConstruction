@@ -8,6 +8,9 @@ Originally released by FYJ95 [here](https://dsp.thunderstore.io/package/57a103a4
 
 ## 更新日志
 
+### v1.1.9
+- 兼容 ProjectGenesis（创世之书）mod，支持等离子熔炉进行垂直建造
+
 ### v1.1.8
 - 修复与 SampleAndHoldSim 等 mod 同时使用时的兼容性问题（DivideByZeroException）
 - 增加对装配器数据异常状态的防御性检查，提升整体稳定性
@@ -28,6 +31,9 @@ Originally released by FYJ95 [here](https://dsp.thunderstore.io/package/57a103a4
 Allows assemblers, smelters, chemical plants, and other production buildings to be constructed vertically, similar to Matrix Labs.
 
 ## Changelog
+
+### v1.1.9
+- Added compatibility with the ProjectGenesis mod: Plasma Furnace now supports vertical construction
 
 ### v1.1.8
 - Fixed compatibility issue (DivideByZeroException) when used with mods like SampleAndHoldSim
