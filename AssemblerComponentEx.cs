@@ -253,10 +253,11 @@ namespace AssemblerVerticalConstruction
             for (int l = 0; l < productCountsLen; l++)
             {
                 var maxCount = _this.recipeExecuteData.productCounts[l] * 9;
-                if (_this.produced[l] < maxCount && nextAssembler.produced[l] > 0)
+                var remainCapacity = maxCount - _this.produced[l];
+                if (remainCapacity > 0 && nextAssembler.produced[l] > 0)
                 {
-                    // 按比例传送原料
-                    var count = Math.Min(_this.recipeExecuteData.productCounts[l] * 2, nextAssembler.produced[l]);
+                    // 按下层剩余产物缓存转送，避免固定 2 倍配方产物数成为层间吞吐瓶颈。
+                    var count = Math.Min(remainCapacity, nextAssembler.produced[l]);
                     _this.produced[l] += count;
                     nextAssembler.produced[l] -= count;
                 }
