@@ -8,6 +8,9 @@ Originally released by FYJ95 [here](https://dsp.thunderstore.io/package/57a103a4
 
 ## 更新日志
 
+### v1.1.10
+- 修复堆叠制造台之间物品传输的吞吐量瓶颈。将原本每 tick 固定移动 `productCount * 2` 个产物的上限，修改为根据下方制造台的剩余产物缓存空间进行传输，解决高速或高层堆叠时上方产物积压、下方无法及时排空的问题。
+
 ### v1.1.9
 - 兼容 ProjectGenesis（创世之书）mod，支持等离子熔炉进行垂直建造
 
@@ -31,6 +34,9 @@ Originally released by FYJ95 [here](https://dsp.thunderstore.io/package/57a103a4
 Allows assemblers, smelters, chemical plants, and other production buildings to be constructed vertically, similar to Matrix Labs.
 
 ## Changelog
+
+### v1.1.10
+- Fixed a throughput bottleneck in output transfer between stacked assemblers. Changed the original fixed transfer limit of `productCount * 2` items per tick to transfer up to the remaining buffer capacity of the lower assembler. This resolves the issue where upper layers keep products buffered on high-speed or tall stacked machines while lower layers cannot drain them fast enough.
 
 ### v1.1.9
 - Added compatibility with the ProjectGenesis mod: Plasma Furnace now supports vertical construction
