@@ -179,6 +179,13 @@ namespace AssemblerVerticalConstruction
                 var entityId = assemblerPool[assemblerId].entityId;
                 var entityNextId = assemblerPool[assemblerNextId].entityId;
 
+                // 防御性检查：在多线程环境下，装配器可能在 GetNextId 与此处之间被移除，
+                // 导致 entityId 变为 0，而 entityMutexs[0] 为 null，引发 ArgumentNullException
+                if (entityId <= 0 || entityNextId <= 0)
+                {
+                    return;
+                }
+
                 lock (factory.entityMutexs[entityId])
                 {
                     lock (factory.entityMutexs[entityNextId])
